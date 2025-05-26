@@ -1,0 +1,27 @@
+// pipeline registers -> execute | memory
+
+module pl_reg_em (
+    input             clk, en, clr,
+    input      [31:0] PCPlus4E, ALUResultE, InstrE, PCE, ALUoutE, WriteDataE, WriteRegE,
+    output reg [31:0] PCPlus4M, ALUResultM, InstrM, PCM, ALUoutM, WriteDataM, WriteRegM
+);
+
+initial begin
+    PCPlus4M=0, ALUResultM=0, InstrM=0, PCM=0, ALUoutM=0, WriteDataM=0, WriteRegM=0;
+end
+
+always @(posedge clk) begin
+    if (clr) begin
+        PCPlus4M=0, ALUResultM=0, InstrM=0, PCM=0, ALUoutM=0, WriteDataM=0, WriteRegM=0;
+    end else if (!en) begin
+        PCPlus4M    <= PCPlus4E;
+        ALUResultM  <= ALUResultE;
+        InstrM      <= InstrE;
+        PCM         <= PCE;
+        ALUoutM     <= ALUoutE;
+        WriteDataM  <= WriteDataE;
+        WriteRegM   <= WriteRegE;
+    end
+end
+
+endmodule

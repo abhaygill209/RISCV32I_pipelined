@@ -1,0 +1,26 @@
+// pipeline registers -> decode | execute
+
+module pl_reg_de (
+    input             clk, en, clr,
+    input      [31:0] PCPlus4D, InstrD, PCD, SrcAD, SrcBD, SignImmD,
+    output reg [31:0] PCPlus4E, InstrE, PCE, SrcAE, SrcBE, SignImmE
+);
+
+initial begin
+    PCPlus4E=0, InstrE=0, PCE=0, SrcAE=0, SrcBE=0, SignImmE=0;
+end
+
+always @(posedge clk) begin
+    if (clr) begin
+        PCPlus4E=0, InstrE=0, PCE=0, SrcAE=0, SrcBE=0, SignImmE=0;
+    end else if (!en) begin
+        PCPlus4E <= PCPlus4D;
+        InstrE   <= InstrD;
+        PCE      <= PCD;
+        SrcAE    <= SrcAD; 
+        SrcBE    <= SrcBD; 
+        SignImmE <= SignImmD;
+    end
+end
+
+endmodule

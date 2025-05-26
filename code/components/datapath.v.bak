@@ -1,0 +1,100 @@
+
+// datapath.v
+module datapath (
+    input         clk, reset,
+    input [1:0]   ResultSrc,
+    input         ALUSrc, RegWrite,
+    input [1:0]   ImmSrc, load,
+    input [2:0]   ALUControl,
+    input         Branch, Jump, Jalr, sral, 
+    output [31:0] PC,
+    input  [31:0] Instr,
+    output [31:0] Mem_WrAddr, Mem_WrData,
+    input  [31:0] ReadData,
+    output [31:0] Result,
+    output [31:0] PCW, ALUResultW, WriteDataW
+);
+
+wire [31:0] PCNext, PCJalr, PCTarget, AuiPC, lAuiPC, ReadDatap;
+wire [31:0] ImmExt, SrcA, SrcB, WriteData, ALUResult;
+///////////////////for pipelining///////////////////////
+
+//fetch | decode  
+wire [31:0] PCPlus4, InstrD, PCD, SignImmD, WriteDataD, PCPlus4D, PCD;
+//decode | execute
+wire [31:0] SrcAD, SrcBD, SrcAE, SrcBE, SignImmE, PCPlus4E, PCE, InstrE;
+//execute | memory
+wire [31:0] ALUoutE, PCM, PCPlus4M, ALUResultM, InstrM, ALUResultE, WriteDataE, WriteRegE, ALUoutM, WriteDataM, WriteRegM;
+//memory | write
+wire [31:0] PCPlus4W, ALUResultW, WriteDataW, InstrW, PCW, WriteDataM, ALUOutM, ReadDataM, ALUOutW, ReadDataW; 
+
+
+wire [31:0] 
+wire Zero, TakeBranch;
+
+wire PCSrc = ((Branch & TakeBranch) || Jump || Jalr) ? 1'b1 : 1'b0;
+
+// next PC logic
+mux2 #(32)     pcmux(PCPlus4, PCTarget, PCSrc, PCNext);
+mux2 #(32)     jalrmux (PCNext, ALUResult, Jalr, PCJalr);
+
+// stallF - should be wired from hazard unit
+wire StallF = 0; // remove it after adding hazard unit.
+reset_ff #(32) pcreg(clk, reset, StallF, PCJalr, PC);
+adder          pcadd4(PC, 32'd4, PCPlus4);
+
+// Pipeline Register 1 -> Fetch | Decode
+
+wire FlushD = 0; // remove it after adding hazard unit
+// FlushD - should be wired from hazard unit
+pl_reg_fd plfd (clk, StallD, FlushD, 
+                Instr, PC, PCPlus4, 
+                InstrD, PCD, PCPlus4D);
+
+adder          pcaddbranch(PCD, ImmExt, PCTarget);
+
+// register file logic // is in decode stage so InstrD 
+reg_file       rf (clk, RegWrite, InstrD[19:15], InstrD[24:20], InstrD[11:7], Result, SrcAD, WriteDataD);
+imm_extend     ext (InstrD[31:7], ImmSrc, ImmExtD);
+
+// Pipeline Register 2 -> Decode | Execute
+wire FLushE = 0, StallE = 0;
+pl_reg_de plde(clk, StallE, FlushE, 
+             PCPlus4D, InstrD, PCD, SrcAD, SrcBD, SignImmD, 
+             PCPlus4E, InstrE, PCE, SrcAE, SrcBE, SignImmE); 
+
+// ALU logic
+mux2 #(32)     srcbmux(WriteDataE, ImmExtE, ALUSrc, SrcB);
+alu            alu (SrcAE, SrcBE, ALUControl, sral, ALUResultE, Zero);
+adder #(32)    auipcadder ({InstrE[31:12], 12'b0}, PC, AuiPC);
+mux2 #(32)     lauipcmux (AuiPC, {InstrE[31:12], 12'b0}, InstrE[5], lAuiPC);
+
+branching_unit bu (Instr[14:12], Zero, ALUResultE[31], TakeBranch);
+
+// Pipeline Register 3 -> Execute | Memory
+wire FLushM = 0, StallM = 0;
+pl_reg_em plem(clk, SlallM, FlushM, 
+               PCPlus4E, ALUResultE, InstrE, PCE, ALUoutE, WriteDataE, WriteRegE,
+               PCPlus4M, ALUResultM, InstrM, PCM, ALUoutM, WriteDataM, WriteRegM);
+
+
+// Pipeline Register 4 -> Memory | Writeback
+wire FLushW = 0, StallW = 0;
+pl_reg_mw plmw(clk, StallW, FLushW, 
+               PCPlus4M, WriteDataM, ALUResultM, InstrM, PCM, ALUOutM, ReadDataM, 
+               PCPlus4W, WriteDataW, ALUResultW, InstrW, PCW, ALUOutW, ReadDataW);
+
+// Result Source
+mux4 #(32)     resultmux(ALUResultW, ReadDataW, PCPlus4W, lAuiPCW, ResultSrc, Result);
+
+// hazard unit
+
+assign Mem_WrData = WriteData;
+assign Mem_WrAddr = ALUResult;
+
+// eventually this statements will be removed while adding pipeline registers
+// assign PCW = PC;
+// assign ALUResultW = ALUResult;
+// assign WriteDataW = WriteData;
+
+endmodule

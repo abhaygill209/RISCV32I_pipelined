@@ -1,0 +1,27 @@
+// pipeline registers -> memory | writeback 
+
+module pl_reg_mw (
+    input             clk, en, clr,
+    input      [31:0] PCPlus4M, WriteDataM, ALUResultM, InstrM, PCM, ALUOutM, ReadDataM,
+    output reg [31:0] PCPlus4W, WriteDataW, ALUResultW, InstrW, PCW, ALUOutW, ReadDataW
+);
+
+initial begin
+    PCPlus4W=0, WriteDataW=0, ALUResultW=0, InstrW=0, PCW=0, ALUOutW=0, ReadDataW=0;
+end
+
+always @(posedge clk) begin
+    if (clr) begin
+        PCPlus4W=0, WriteDataW=0, ALUResultW=0, InstrW=0, PCW=0, ALUOutW=0, ReadDataW=0;
+    end else if (!en) begin
+        PCPlus4W    <= PCPlus4M;
+        WriteDataW  <= WriteDataM;
+        ALUResultW  <= ALUResultM;
+        InstrW      <= InstrM;
+        PCW         <= PCM;
+        ALUOutW     <= ALUOutM;
+        ReadDataW   <= ReadDataM; 
+    end
+end
+
+endmodule
