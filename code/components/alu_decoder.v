@@ -50,7 +50,10 @@ always @(*) begin
                 end 
                 3'b110:  ALUControl = 3'b011; // or, ori
                 3'b111:  ALUControl = 3'b010; // and, andi
-                default: ALUControl = 3'bxxx; // ???
+                default: begin 
+                    ALUControl = 3'bxxx; // ???
+                    sral       = 1'bx;
+                end
             endcase
     endcase
 end

@@ -13,22 +13,22 @@ reg [31:0] Ext_WriteData, Ext_DataAdr;
 wire [31:0] WriteData, DataAdr, ReadData;
 wire MemWrite;
 wire [31:0] PCW, Result, DataAdrW, WriteDataW;
-wire [31:0] PCPlus4W, PCTargetM, PCNext, PCJalr, PCPlus4, InstrM, PCM, WriteDataM;
+wire [31:0] PCPlus4W, PCNext, PCJalr, PCPlus4, InstrM, PCM, WriteDataM;
 wire [31:0] PCD, ImmExtD, PCTargetE, SrcAD, WriteDataE, PCPlus4D;
 wire [31:0] WriteDataD, ImmExtE, SrcB , ALUResultE, InstrE, PCE, AuiPCE;
 wire [31:0] lAuiPCE, ReadDataW, lAuiPCW, PCPlus4E, SrcAE, PCPlus4M, ALUResultM, lAuiPCM;
-wire JalrE, ALUSrcE, sralE, ZeroE, TakeBranchE, RegWriteE, RegWriteM, RegWriteW, JumpE, BranchE, rowE, rowM, BorrowE;
+wire JalrE, ALUSrcE, sralE, ZeroE, TakeBranchE, RegWriteE, RegWriteM, RegWriteW, JumpE, BranchE;
 wire [1:0] ResultSrcE, ResultSrcM, ResultSrcW;
 wire [2:0] ALUControlE;
 
 // Initialize Top Module
 pl_riscv_cpu uut (clk, reset, Ext_MemWrite, Ext_WriteData, Ext_DataAdr, MemWrite, WriteData, DataAdr, ReadData, PCW, Result, DataAdrW, WriteDataW,
-                    PCPlus4W, PCTargetM, PCNext, PCJalr, PCPlus4, InstrM, PCM, WriteDataM,
+                    PCPlus4W, PCNext, PCJalr, PCPlus4, InstrM, PCM, WriteDataM,
 
                     PCD, ImmExtD, PCTargetE, SrcAD, WriteDataE, PCPlus4D,
                     WriteDataD, ImmExtE, SrcB , ALUResultE, InstrE, PCE, AuiPCE,
                     lAuiPCE, ReadDataW, lAuiPCW, PCPlus4E, SrcAE, PCPlus4M, ALUResultM, lAuiPCM,
-                    JalrE, ALUSrcE, sralE, ZeroE, TakeBranchE, RegWriteE, RegWriteM, RegWriteW, JumpE, BranchE, rowE, rowM, BorrowE,
+                    JalrE, ALUSrcE, sralE, ZeroE, TakeBranchE, RegWriteE, RegWriteM, RegWriteW, JumpE, BranchE,
                     ResultSrcE, ResultSrcM, ResultSrcW, ALUControlE);
 
 integer fault_instrs = 0, i = 0, fw = 0, flag = 0;

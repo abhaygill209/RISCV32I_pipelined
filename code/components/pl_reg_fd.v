@@ -13,9 +13,13 @@ end
 
 always @(posedge clk) begin
     if (clr) begin
-        InstrD = 32'd0; PCD = 32'd0; PCPlus4D = 32'd0;
-    end else if (!en) begin
-        InstrD <= InstrF; PCD <= PCF;
+        InstrD     <= 32'd0; 
+        PCD        <= 32'd0; 
+        PCPlus4D   <= 32'd0;
+    end 
+    else if (!en) begin
+        InstrD   <= InstrF; 
+        PCD      <= PCF;
         PCPlus4D <= PCPlus4F;
     end
 end
