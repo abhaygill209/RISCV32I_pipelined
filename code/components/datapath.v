@@ -54,7 +54,7 @@ adder          pcadd4(PC, 32'd4, PCPlus4);
 // Pipeline Register 1 -> Fetch | Decode
 
 wire FlushD, StallD;
-assign FlushD = (BranchE && TakeBranchE); // remove it after adding hazard unit
+assign FlushD = PCSrc; // remove it after adding hazard unit
 assign StallD = 0;
 // FlushD - should be wired from hazard unit
 pl_reg_fd plfd (clk, StallD, FlushD, 
@@ -64,7 +64,7 @@ pl_reg_fd plfd (clk, StallD, FlushD,
 wire [31:0] src_a, src_b;
 adder          pcaddbranch(PCE, ImmExtE, PCTargetE);
 reg_file       rf (clk, RegWriteW, InstrD[19:15], InstrD[24:20], InstrW[11:7], ResultW, src_a, src_b);
-imm_extend     ext (InstrD[31:7], ImmSrc, ImmExtD);
+imm_extend     ext (InstrD[31:7], ImmSrc, ImmExtD); 
 wire [1:0] regAD, regBD; 
 mux4 #(32)     rega(.d0(src_a), .d1(ResultW), .sel(regAD), .y(SrcAD));
 mux4 #(32)     regb(.d0(src_b), .d1(ResultW), .sel(regBD), .y(WriteDataD));
@@ -72,7 +72,7 @@ mux4 #(32)     regb(.d0(src_b), .d1(ResultW), .sel(regBD), .y(WriteDataD));
 // Pipeline Register 2 -> Decode | Execute
 wire FlushE, StallE;
 assign StallE = 0;
-assign FlushE = (BranchE && TakeBranchE);
+assign FlushE = PCSrc;
 pl_reg_de plde(clk, StallE, FlushE, 
              PCPlus4D, InstrD, PCD, SrcAD, WriteDataD, ImmExtD, ALUSrcD, sralD, RegWriteD, ALUControlD,  
              ResultSrcD, BranchD, JumpD, JalrD, rowD, MemWriteD,
@@ -85,8 +85,8 @@ mux2 #(32)     srcbmux(WriteDataE, ImmExtE, ALUSrcE, SrcB);
 wire [31:0] SRCA, SRCB;
 wire [1:0] srcA_con, srcB_con;
 //from hazard control unit 
-mux4 #(32)     sra(SrcAE, ALUResultM, ALUResultW, PCPlus4M, srcA_con, SRCA);
-mux4 #(32)     srb(SrcB , ALUResultM, ALUResultW, PCPlus4M, srcB_con, SRCB);
+mux4 #(32)     sra(SrcAE, ALUResultM, ResultW, PCPlus4M, srcA_con, SRCA);
+mux4 #(32)     srb(SrcB , ALUResultM, ResultW, PCPlus4M, srcB_con, SRCB);
 
 alu            alu (SRCA, SRCB, ALUControlE, sralE, ALUResultE, ZeroE);
 adder #(32)    auipcadder ({InstrE[31:12], 12'b0}, PCE, AuiPCE);
